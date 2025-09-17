@@ -1,2 +1,2 @@
 # ai-keystone-project
-Flagship project for the AI Operator Protocol.
+Flagship project for the AI Operator Protocol frrr.
