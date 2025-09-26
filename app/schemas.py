@@ -13,3 +13,9 @@ class Employee(BaseModel):
 class departments(BaseModel):
     id: int
     department_name: str
+
+class EmployeeCreate(BaseModel):
+    name: str
+    hire_date: Optional[date] = None
+    salary: Optional[int] = None
+    department_id: Optional[int] = None

@@ -143,9 +143,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-
+randomUsefulCode.txt
 config.py
-
+understandingPractice.txt
 # Spyder project settings
 .spyderproject
 .spyproject

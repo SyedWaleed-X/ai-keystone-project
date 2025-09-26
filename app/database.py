@@ -6,5 +6,5 @@ DATABASE_URL = f"dbname=operator_db user=postgres password={config.DB_PASSWORD}"
 
 def get_db_connection():
 
-    conn = psycopg2.connect(DATABASE_URL,host="localhost")
+    conn = psycopg2.connect(DATABASE_URL)
     return conn
