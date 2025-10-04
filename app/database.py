@@ -1,6 +1,6 @@
 import psycopg2
 import os
-import config
+from . import config
 
 DATABASE_URL = f"dbname=operator_db user=postgres password={config.DB_PASSWORD}"
 

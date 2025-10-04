@@ -1,16 +1,17 @@
 
 
 
-# Project title : Employee and department Data API project
+# Project title : RAG-Powered Corporate API
 
-A REST API built with python, postgreSQL, and FASTAPI to manage employee data and departments for a corporate environment.
+A REST API built with python, postgreSQL, and FASTAPI. It has two purposes. To manage employee data and departments for a corporate environment and to answer questions using AI specifically based on context provided, using a RAG pipeline.
 
 
 # features
 
 The api can insert employees, fetch all employees, fetch one employee, sort employees by department id and minsalary.
 Data is consistent.
-Documentation is provided by FASTAPI, which is quite ntuitive and easy to use and understand.
+And it provides a Q&A 'chat' endpoint which answers your questions using ai and rag pipeline based on your private knowledge base.
+Documentation is provided by FASTAPI, which is quite intuitive and easy to use and understand.
 
 ## Tech Stack
 
@@ -55,6 +56,7 @@ To run this project on your local machine, please follow these steps:
 5.  **Configure Environment:**
     *   Create a `config.py` file in the root directory.
     *   Add your database password to this file: `DB_PASSWORD = "your_password"`
+    *   Add your gemini api key to this file: 'GEMINI_API_KEY = "your key"'
 
 6.  **Run the Server:**
     ```bash
@@ -90,7 +92,27 @@ To run this project on your local machine, please follow these steps:
 
 *   **GET `/search/employees`**: Searches for employees.
     *   **Query Parameter:** `department` (e.g., `/search/employees?department=Sales`)
-    *   **Response:** `200 OK`
+    *   **Response:** `200 OK
+
+*   **POST '/chat'**: Gives you answer based on your queries and the specific context provided in your documents.
+
+```bash
+curl -X 'POST' \
+  'http://127.0.0.1:8000/chat' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "query": "What is the company vacation policy?"
+}'
+```
+{
+  "answer": "Based on the context, all employees are entitled to 20 days of paid time off (PTO) per year, which must be approved by their direct manager.",
+  "sources": [
+    "The official company policy for vacation is that all employees are entitled to 20 days of paid time off (PTO) per year, which must be approved by their direct manager at least two weeks in advance."
+  ]
+}
+
+
 
 
 

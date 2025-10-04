@@ -19,3 +19,10 @@ class EmployeeCreate(BaseModel):
     hire_date: Optional[date] = None
     salary: Optional[int] = None
     department_id: Optional[int] = None
+
+class ChatQuery(BaseModel):
+    query:str
+
+class ChatResponse(BaseModel):
+    answer:str
+    sources: Optional[list[str]] = None

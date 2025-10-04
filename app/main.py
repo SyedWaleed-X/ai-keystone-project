@@ -8,11 +8,25 @@ from psycopg2.extras import DictCursor
 # This is the one and only 'app' instance
 from fastapi import HTTPException
 from typing import Optional
+from app.rag_prototype import RAG_Pipeline
+from contextlib import asynccontextmanager
+
+ml_models = {}
+
+@asynccontextmanager
+
+async def lifespan(app:FastAPI):
+
+    ml_models["rag_pipeline"] = RAG_Pipeline()
+
+    yield
+
+    print("Server shutting down")
+
+    ml_models.clear()
 
 
-
-
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 # This is our root endpoint
 @app.get("/")
@@ -189,6 +203,31 @@ values (%s,%s,%s,%s)
     finally:
         if conn:
             conn.close()
+
+
+
+
+
+
+
+@app.post("/chat",response_model=schemas.ChatResponse)
+
+async def chat_endpoint(query: schemas.ChatQuery):
+
+
+    user_query = query.query
+
+    if not user_query or user_query.strip() == "":
+
+        raise HTTPException(status_code=400, detail="Query cant be empty")
+    
+
+    rag_pipe = ml_models["rag_pipeline"]
+
+    answer = rag_pipe.ask(user_query)
+
+    return answer
+
 
 
 
