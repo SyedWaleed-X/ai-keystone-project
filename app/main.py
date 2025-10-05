@@ -131,6 +131,68 @@ def get_employee_by_id(employee_id: int):
             conn.close()
 
 
+@app.put("/employees/{employee_id}", response_model=schemas.Employee)
+
+def update_employee(employee_id : int, employee_update: schemas.EmployeeCreate):
+
+    conn = None
+    try:
+        conn = database.get_db_connection()
+
+        cur = conn.cursor()
+
+        sql = """
+            UPDATE employees
+            set name = %s, hire_date = %s, salary = %s, department_id = %s
+            where id = %s RETURNING *  """
+        params = (
+
+            employee_update.name,
+            employee_update.hire_date,
+            employee_update.salary,
+            employee_update.department_id,
+            employee_id
+        )
+        cur.execute(sql, params)
+
+        updated_row = cur.fetchone()
+
+        if updated_row is None:
+            raise HTTPException(status_code = 400,detail = "Employee not found")
+        conn.commit()
+        cur.close()
+
+        colnames = [desc[0] for desc in cur.description]
+        return dict(zip(colnames, updated_row))
+    finally:
+        if conn:
+            conn.close()
+
+@app.delete("/employees/{employee_id}", status_code = 204)
+
+def delete_employee(employee_id : int):
+
+    conn = None
+    try:
+        conn = database.get_db_connection()
+        cur = conn.cursor()
+        sql = "DELETE from employees where employee_id = %s RETURNING ID;"
+
+        cur.execute(sql, (employee_id,))
+
+        deleted_id = cur.fetchone()
+
+        if deleted_id is None:
+            raise HTTPException(status_code = 404, detail="No employee found with that id")
+
+        conn.commit()
+        cur.close()
+        return
+    finally:
+        if conn:
+            conn.close()
+
+
 @app.get("/search/employees", response_model=list[schemas.Employee])
 
 def search_employee(department: Optional[str] = None, min_salary: int | None = None ):
