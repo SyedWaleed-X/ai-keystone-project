@@ -1,9 +1,9 @@
 
 -- Table to store department information
-create TABLE departments {
+create TABLE departments (
     id SERIAL PRIMARY KEY, -- Unique identifier for each department
     department_name VARCHAR(100) NOT NULL UNIQUE -- Name of the department (must be unique)
-}
+)
 
 
 -- Table to store employee information

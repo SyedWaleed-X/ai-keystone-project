@@ -1,0 +1,30 @@
+# docker-compose.yml
+
+version: '3.8' # Specifies the version of the Docker Compose file format
+
+services:
+  # --- Our PostgreSQL Database Service ---
+  db:
+    image: postgres:16 # Use the official PostgreSQL version 15 image
+    container_name: keystone_db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${DB_PASSWORD} # Reads from a .env file
+      - POSTGRES_DB=operator_db
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data # Makes data persistent
+    ports:
+      - "5433:5432" # Maps your local port 5432 to the container's port 5432
+
+  # --- Our FastAPI API Service ---
+  api:
+    build: . # Build this service from the Dockerfile in the current directory
+    container_name: keystone_api
+    volumes:
+      - ./chroma_data:/app/chroma_data
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_PASSWORD=${DB_PASSWORD} # Pass the password to the API service too
+    depends_on:
+      - db # This service will not start until the 'db' service is running

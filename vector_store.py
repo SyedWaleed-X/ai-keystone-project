@@ -1,72 +1,100 @@
+
 import chromadb
+import os
 
+from app.embedder import model as embedding_model
 
-from app.embedder import process_document_and_get_embedding
+from langchain.document_loaders import TextLoader, PyPDFLoader
+
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 
 CHROMA_DB_PATH = "chroma_data"
 
 COLLECTION_NAME = "knowledge_base"
 
-
-print("initialize client to save info perma")
-
-client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
+DATA_Directory = "data/" #folder we'll scan for documents
 
 
 
-def rest_and_populate_vector_store(file_path: str, source_id : str):
 
-    ids, embeddings, text, metadatas = process_document_and_get_embedding(
-        filepath=file_path, source_id=source_id
-    )
+
+
+def populate_vector_store():
+
+    all_chunks = []
+
+    for filename in os.listdir(DATA_Directory):
+          
+          file_path = os.path.join(DATA_Directory, filename)
+
+          if filename.endswith("pdf"):
+                
+                print(f"processing PDF {filename}")
+                loader = PyPDFLoader(file_path)
+                documents = loader.load()
+          elif filename.endswith(".txt"):
+             print(f"processing txt file {filename}")
+             loader = TextLoader(file_path)
+             documents = loader.load()
+          else:
+                continue
+          
+          text_splitter = RecursiveCharacterTextSplitter(chunk_size = 1000, chunk_overlap=100)
+          chunks = text_splitter.split_documents(documents)
+          
+          for chunk in chunks:
+                chunk.metadata = {"source": filename}
+
+          all_chunks.extend(chunks)
+    if not all_chunks:
+          print("no documents found to index, exiting")
+
+          return
+            
+    print(f"Now creating embeddings for all {len(chunks)} chunks")
+
+    chunk_texts = [chunk.page_content for chunk in all_chunks]
+
+    embeddings = embedding_model.encode(chunk_texts).tolist()
+    
+    ids = [f"chunk_{i}" for i in range(len(all_chunks))]
+    metadatas = [chunk.metadata for chunk in all_chunks]
+
+    client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
 
     try:
           
           print(f"clearing collection {COLLECTION_NAME}")
+
           client.delete_collection(name=COLLECTION_NAME)
-    except Exception as e:
-          print(f"Collection {COLLECTION_NAME} didn't exist,skipping clear")
 
-    print(f"Accessing collection {COLLECTION_NAME}")
+    except Exception:
+          print(f"collection name {COLLECTION_NAME} didnt exist, skipping deletion")
 
-    collection = client.get_or_create_collection(COLLECTION_NAME)
+    collection = client.create_collection(COLLECTION_NAME)
+
+    print("Adding documents to the collection")
 
     collection.add(
+          
+          ids=ids,
+          embeddings=embeddings,
+          documents=chunk_texts,
+          metadatas=metadatas
 
-        ids=ids,
-        embeddings=embeddings.tolist(),
-        documents=text,
-        metadatas=metadatas
     )
+    print(f" successfully populated the vector store with {collection.count()} chunks")
 
-    print("successfuly populated the vector store")
+    
 
+    
+
+    
 
 if __name__ == "__main__":
 
-        file_to_process = "H:\\AIAce\\ai-keystone-project\\data\\knowledge.txt"
-
-        source_identifier = "knowledge_base_v1"
-
-        rest_and_populate_vector_store(
-
-            file_path=file_to_process,
-            source_id=source_identifier
-        )
-
-        print("Testing")
-
-        collection = client.get_collection(name=COLLECTION_NAME)
-
-        results = collection.query(
-
-            query_texts="tell me about gintama bro",
-            n_results=1
-        )
-
-        print("Top result")
-        print(results["documents"][0][0])
+        populate_vector_store()
 
 
 

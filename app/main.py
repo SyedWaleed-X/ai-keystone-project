@@ -10,7 +10,7 @@ from fastapi import HTTPException
 from typing import Optional
 from app.rag_prototype import RAG_Pipeline
 from contextlib import asynccontextmanager
-
+import time
 ml_models = {}
 
 @asynccontextmanager
@@ -31,12 +31,19 @@ app = FastAPI(lifespan=lifespan)
 # This is our root endpoint
 @app.get("/")
 def read_root():
-    return {"message": "Operator API is online."}
+    return {"message": "Operator API is online fr."}
 
 # This is the one and only '/employees' endpoint
 # This is the "Fake Data" test version for app/main.py
 
 # The final, permanent, robust version for app/main.py
+
+@app.get("/health", status_code=200)
+def health_check():
+    """
+    Simple health check endpoint to confirm the API is running.
+    """
+    return {"status": "ok"}
 
 @app.get("/employees", response_model=list[schemas.Employee])
 def get_all_employees():
@@ -45,7 +52,7 @@ def get_all_employees():
         conn = database.get_db_connection()
         cur = conn.cursor() # Use a standard cursor, not a DictCursor
         
-        cur.execute("SELECT id, name, hire_date, salary, department_id FROM employees;")
+        cur.execute("SELECT id, name, hire_date, salary, department_id FROM public.employees;")
         
         # Get the column names from the cursor description
         colnames = [desc[0] for desc in cur.description]
@@ -230,5 +237,18 @@ async def chat_endpoint(query: schemas.ChatQuery):
 
 
 
+"""
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    
+    response = await call_next(request)
+    
+    process_time = time.time() - start_time
+    # Example log: GET /employees HTTP/1.1 200 OK - 0.05s
+    print(f"{request.method} {request.url.path} {response.status_code} - {process_time:.2f}s")
+    
+    return response
+"""
 
 
