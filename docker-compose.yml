@@ -8,9 +8,9 @@ services:
     image: postgres:16 # Use the official PostgreSQL version 15 image
     container_name: keystone_db
     environment:
-      - POSTGRES_USER=postgres
+      - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD} # Reads from a .env file
-      - POSTGRES_DB=operator_db
+      - POSTGRES_DB=${DB_NAME}
     volumes:
       - ./postgres_data:/var/lib/postgresql/data # Makes data persistent
     ports:
@@ -25,6 +25,11 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD} # Pass the password to the API service too
+      - DB_HOST=${DB_HOST}
+      - DB_NAME=${DB_NAME}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+         
     depends_on:
       - db # This service will not start until the 'db' service is running

@@ -52,7 +52,7 @@ def populate_vector_store():
 
           return
             
-    print(f"Now creating embeddings for all {len(chunks)} chunks")
+    print(f"Now creating embeddings for all {len(all_chunks)} chunks")
 
     chunk_texts = [chunk.page_content for chunk in all_chunks]
 
@@ -76,14 +76,27 @@ def populate_vector_store():
 
     print("Adding documents to the collection")
 
-    collection.add(
+    batch_size = 4000
+    for i in range(0, len(ids), batch_size):
           
-          ids=ids,
-          embeddings=embeddings,
-          documents=chunk_texts,
-          metadatas=metadatas
+          batch_ids = ids[i:i + batch_size]
+          batch_embeddings = embeddings[i:i + batch_size]
+          batch_documents = chunk_texts[i:i + batch_size]
+          batch_metadatas = metadatas[i:i + batch_size]
 
-    )
+          print(f"Adding batch {i // batch_size + 1} with {len(batch_ids)} documents")
+
+          collection.add(
+                ids=batch_ids,
+                embeddings=batch_embeddings,
+                documents=batch_documents,
+                metadatas=batch_metadatas
+
+          )
+
+          
+
+   
     print(f" successfully populated the vector store with {collection.count()} chunks")
 
     

@@ -27,7 +27,7 @@ class RAG_Pipeline:
         client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
         self.collection = client.get_or_create_collection(name=collection_name)
 
-    def _retrieve_context(self, query:str, n_results: int = 1):
+    def _retrieve_context(self, query:str, n_results: int = 5):
 
         query_embedding = self.embedding_model.encode([query])
 
