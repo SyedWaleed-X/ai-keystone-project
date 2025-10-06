@@ -31,7 +31,7 @@ app = FastAPI(lifespan=lifespan)
 # This is our root endpoint
 @app.get("/")
 def read_root():
-    return {"message": "Operator API is online fr."}
+    return {"message": "Operator API is online frr."}
 
 # This is the one and only '/employees' endpoint
 # This is the "Fake Data" test version for app/main.py
@@ -236,7 +236,7 @@ def search_employee(department: Optional[str] = None, min_salary: int | None = N
 
 @app.post("/employees", response_model=list[schemas.Employee])
 
-def emp_post(employee: schemas.EmployeeCreate):
+def create_employee(employee: schemas.EmployeeCreate):
 
     conn = None 
 
