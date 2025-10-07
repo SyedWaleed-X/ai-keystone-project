@@ -3,7 +3,8 @@
 from fastapi import FastAPI
 import psycopg2
 import psycopg2.extras
-from app import database, schemas
+import database
+import schemas
 from psycopg2.extras import DictCursor
 # This is the one and only 'app' instance
 from fastapi import HTTPException

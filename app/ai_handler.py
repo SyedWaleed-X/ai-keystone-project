@@ -1,6 +1,6 @@
 import google.generativeai as genai
 
-from . import  config 
+import  config 
 
 import traceback
 

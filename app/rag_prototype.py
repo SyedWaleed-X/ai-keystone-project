@@ -1,8 +1,8 @@
 import chromadb
 
-from . ai_handler import get_llm_completion
+from  ai_handler import get_llm_completion
 
-from . embedder import model as embedding_model
+from  embedder import model as embedding_model
 
 
 CHROMA_DB_PATH = "chroma_data"
