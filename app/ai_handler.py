@@ -1,11 +1,12 @@
 import google.generativeai as genai
 
-import  config 
+import os 
 
 import traceback
 
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-genai.configure(api_key=config.GEMINI_API_KEY)
+genai.configure(api_key=GEMINI_API_KEY)
 
 
 def get_llm_completion(prompt: str) -> str:
