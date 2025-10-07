@@ -22,10 +22,13 @@ and give your short opinion on the subject/provided context, just a short para/m
 class RAG_Pipeline:
 
     def __init__(self):
+        print("Initializing RAG Pipeline...") # Added a print statement for logging
+        
 
         self.embedding_model = embedding_model
         client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
         self.collection = client.get_or_create_collection(name=collection_name)
+        print(f"✅ Pipeline initialized. Found {self.collection.count()} documents.")
 
     def _retrieve_context(self, query:str, n_results: int = 5):
 
