@@ -9,7 +9,7 @@ from psycopg2.extras import DictCursor
 # This is the one and only 'app' instance
 from fastapi import HTTPException
 from typing import Optional
-from app.rag_prototype import RAG_Pipeline
+from rag_prototype import RAG_Pipeline
 from contextlib import asynccontextmanager
 import time
 ml_models = {}
