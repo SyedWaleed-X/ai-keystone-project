@@ -8,11 +8,12 @@ This repository contains the source code for a high-performance REST API with tw
 
 ## Live Demonstration
 
-A live version of this API is deployed on Render. **Please contact me directly for the URL and a private demonstration.**
+A live version of this API is deployed to the cloud. **Please contact me directly for the URL and a private demonstration.**
 
 ### Demo 
-`![Chat Endpoint Demo](docs/img1.png)`
-`![Chat Endpoint Demo](docs/img2.png)`
+
+![Chat Endpoint Demo](docs/img1.png)
+![Chat Endpoint Demo](docs-img2.png)
 
 
 ---
