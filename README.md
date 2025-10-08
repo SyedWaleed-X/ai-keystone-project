@@ -1,69 +1,69 @@
+# RAG-Powered Corporate API
 
+![Python](https://img.shields.io/badge/Python-3.11-blue) ![FastAPI](https://img.shields.io/badge/FastAPI-green) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue) ![Docker](https://img.shields.io/badge/Docker-blue) ![RAG](https://img.shields.io/badge/AI-RAG-purple)
 
-
-# Project title : RAG-Powered Corporate API
-
-A REST API built with python, postgreSQL, and FASTAPI. It has two purposes. To manage employee data and departments for a corporate environment and to answer questions using AI specifically based on context provided, using a RAG pipeline.
-
-
-# features
-
-The api can insert employees, fetch all employees, fetch one employee, sort employees by department id and minsalary.
-Data is consistent.
-And it provides a Q&A 'chat' endpoint which answers your questions using ai and rag pipeline based on your private knowledge base.
-Documentation is provided by FASTAPI, which is quite intuitive and easy to use and understand.
-
-## Tech Stack
-
-*   **Backend:** Python 3.11+, FastAPI
-*   **Database:** PostgreSQL
-*   **Driver:** Psycopg2
-*   **Server:** Uvicorn
+This repository contains the source code for a high-performance REST API with two primary functions: a robust CRUD interface for corporate data and an intelligent, AI-powered Q&A service built on a Retrieval-Augmented Generation (RAG) pipeline.
 
 ---
 
+## Live Demonstration
+
+A live version of this API is deployed on Render. **Please contact me directly for the URL and a private demonstration.**
+
+### Demo 
+`![Chat Endpoint Demo](docs/img1.png)`
+`![Chat Endpoint Demo](docs/img2.png)`
 
 
-## Local Setup
+---
 
-To run this project on your local machine, please follow these steps:
+## Project Overview & Value Proposition
 
+Did you ever run out of tokens asking an LLM questions? Did you submit multiple large documents, only to have the model fail to process them? This project is the solution.
+
+This API implements a RAG pipeline that gives an LLM a virtually infinite, private memory. It can ingest a library of thousands of documents (`.txt`, `.pdf`, etc.), and when a user asks a question:
+1.  It performs a high-speed **semantic search** to find the most relevant pieces of information from across the entire knowledge base.
+2.  It then provides only this relevant context to a powerful LLM (Google's Gemini) to synthesize a precise, fact-based answer.
+
+This allows the system to answer questions about private data it was never trained on, dramatically reducing hallucinations and overcoming the context-window limitations of modern LLMs. It doesn't matter if you have 5 documents or 5,000.
+
+
+---
+
+## Local Development Setup
+
+This project is fully containerized with Docker. The recommended way to run it locally is with Docker Compose.
+
+### Prerequisites
+*   Docker Desktop installed and running.
+*   Git.
+
+### Instructions
 1.  **Clone the Repository:**
     ```bash
     git clone https://github.com/SyedWaleed-X/ai-keystone-project.git
     cd ai-keystone-project
     ```
+2.  **Create Environment File:**
+    *   Copy the example environment file: `cp .env.example .env` (or copy manually on Windows).
+    *   Edit the `.env` file and add your `DB_PASSWORD` and `GEMINI_API_KEY`.
 
-2.  **Create and Activate Virtual Environment:**
+3.  **Run the Indexing Script:**
+    *   This script processes the documents in your `/data` folder and builds the local vector database.
     ```bash
-    # For Windows
+    # You will need a local Python environment for this one-time step
     python -m venv .venv
     .\.venv\Scripts\activate
-    ```
-
-3.  **Install Dependencies:**
-    ```bash
     pip install -r requirements.txt
+    python vector_store.py
     ```
 
-4.  **Database Setup:**
-    *   Ensure you have PostgreSQL installed and running.
-    *   Create a new database named `operator_db`.
-    *   Execute the SQL scripts in the `/sql` folder in the following order:
-        1.  `schema.sql` (to create the tables)
-        2.  `seeds.sql` (to populate with sample data)
-
-5.  **Configure Environment:**
-    *   Create a `config.py` file in the root directory.
-    *   Add your database password to this file: `DB_PASSWORD = "your_password"`
-    *   Add your gemini api key to this file: 'GEMINI_API_KEY = "your key"'
-
-6.  **Run the Server:**
+4.  **Launch the Application:**
     ```bash
-    uvicorn app.main:app --reload
+    docker compose up --build
     ```
 
-7.  **Access the API:**
+5.  **Access the API:**
     *   The API will be available at `http://127.0.0.1:8000`.
     *   Interactive documentation is available at `http://127.0.0.1:8000/docs`.
 
