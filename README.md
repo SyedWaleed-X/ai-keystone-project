@@ -13,7 +13,7 @@ A live version of this API is deployed to the cloud. **Please contact me directl
 ### Demo 
 
 ![Chat Endpoint Demo](docs/img1.png)
-![Chat Endpoint Demo](docs/img2.png)
+![Chat Endpoint Demo](docs/image2.png)
 
 
 ---
