@@ -82,7 +82,7 @@ This project is fully containerized with Docker. The recommended way to run it l
           "id": 1,
           "name": "John Smith",
           "hire_date": "2024-03-15",
-          "salary": 70000,
+          "salary": 65000,
           "department_id": 1
         }
       ]
