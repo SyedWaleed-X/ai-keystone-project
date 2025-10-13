@@ -14,8 +14,8 @@ chromadb
 pypdf
 
 # === Data Engineering & Security ===
-dbt-postgres
-boto3
+# dbt-postgres
+# boto3
 passlib[bcrypt]
 python-jose[cryptography]
 
@@ -23,19 +23,19 @@ python-jose[cryptography]
 streamlit
 
 # === Utility Belt ===
-black
-ruff
-pytest
-httpx
+#black
+#ruff
+#pytest
+#httpx
 
 # For creating PDF reports from your apps
-reportlab
+#reportlab
 
 # For more advanced database interactions (ORM)
-SQLAlchemy
+#SQLAlchemy
 
 
-numpy
+#numpy
 
 #  AWS
-aws-sam-cli
+#aws-sam-cli
