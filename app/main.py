@@ -1,5 +1,4 @@
 # app/main.py
-
 from fastapi import FastAPI
 import psycopg2
 import psycopg2.extras
@@ -9,9 +8,12 @@ from psycopg2.extras import DictCursor
 # This is the one and only 'app' instance
 from fastapi import HTTPException
 from typing import Optional
-from rag_prototype import RAG_Pipeline
+from  rag_prototype import RAG_Pipeline
 from contextlib import asynccontextmanager
 import time
+from fastapi.middleware.cors import CORSMiddleware
+
+
 ml_models = {}
 
 @asynccontextmanager
@@ -28,6 +30,26 @@ async def lifespan(app:FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+
+
+# This is the new CORS middleware block
+origins = [
+    # This allows your local Streamlit app to talk to the API
+    "http://localhost:8501", 
+    # We will add your live Streamlit URL here later
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+
 
 # This is our root endpoint
 @app.get("/")

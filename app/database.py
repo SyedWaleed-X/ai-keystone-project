@@ -1,5 +1,7 @@
 import psycopg2
 import os
+# from dotenv import load_dotenv
+#load_dotenv() # new change to load env files, day 32
 
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
