@@ -1,14 +1,29 @@
-# requirements_backend.txt - For the FastAPI Docker Image
+# requirements_backend.txt - The Stable & Memory-Efficient "Golden" Version
+
 fastapi
 uvicorn[standard]
 psycopg2-binary
 google-generativeai
-sentence-transformers
+
+# --- PINNED VERSIONS FOR STABILITY & LOW MEMORY ---
+# A stable, widely-used version of the core library.
+sentence-transformers==2.2.2
+
+# The core ML libraries. We pin slightly older, stable versions 
+# which are known to be less memory-intensive than the absolute latest.
+torch==2.1.2
+torchvision==0.16.2
+transformers==4.35.2
+
+# This is the fix for your previous ImportError. This version is compatible
+# with sentence-transformers==2.2.2
+huggingface-hub<0.21.0
+# --- END PINNED VERSIONS ---
+
 chromadb
 passlib[bcrypt]
 python-jose[cryptography]
-# We add langchain basics needed by the embedder, but not the whole suite
+
 langchain-community
 langchain-core
 langchain-text-splitters
-pypdf
