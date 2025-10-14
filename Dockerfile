@@ -1,29 +1,33 @@
+# Dockerfile
+
+# Step 1: Start with a lean base image.
 FROM python:3.11-slim
+
+# Step 2: Set the working directory inside the container.
 WORKDIR /app
 
-# Add the /app directory to Python's search path
-# This is the key to making imports work easily
+# Step 3: Set the PYTHONPATH environment variable.
+# This helps Python find your modules (like 'app.embedder') without issues.
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 
-# Copy ONLY the requirements file first for caching
+# Step 4: Copy ONLY the requirements file for optimal caching.
 COPY requirements.txt .
+
+# Step 5: Install all Python dependencies.
 RUN pip install --no-cache-dir -r requirements.txt
 
-# --- Build the Vector Store ---
-# Copy everything needed to run the indexing script
+# Step 6: Copy your application's logic.
+# This copies your 'app' folder into '/app/app' inside the container.
 COPY ./app /app/app
-COPY ./data /app/data
-COPY vector_store.py /app/vector_store.py
 
-# RUN the indexing script to create the chroma_data folder
-RUN python vector_store.py
+# Step 7: Copy your PRE-BUILT data asset.
+# This is the key. We are copying the 'chroma_data' folder that you
+# just rebuilt with the new model.
+COPY ./chroma_data /app/chroma_data
 
-# --- Final Application Setup ---
-# Now that the index is built, we set up the final application.
-# We will copy the app code again to the root /app directory for a clean structure.
-COPY ./app .
-
-# Expose the port and set the final run command
+# Step 8: Expose the port the application will run on.
 EXPOSE 8000
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 
+# Step 9: Define the final command to start the API server.
+# This command runs when the container starts.
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
