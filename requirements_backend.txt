@@ -3,7 +3,7 @@ fastapi
 uvicorn[standard]
 psycopg2-binary
 google-generativeai
-sentence-transformers==2.2.2 # Pinning this version for stability
+sentence-transformers
 chromadb
 passlib[bcrypt]
 python-jose[cryptography]
