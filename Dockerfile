@@ -3,7 +3,7 @@
 FROM python:3.11-slim
 WORKDIR /app
 
-COPY requirements.txt .
+COPY requirements_backend.txt ./requirements.txt
 # This RUN layer will be cached and fast after the first build
 RUN pip install --no-cache-dir -r requirements.txt
 
