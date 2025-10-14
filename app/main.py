@@ -12,7 +12,7 @@ from  rag_prototype import RAG_Pipeline
 from contextlib import asynccontextmanager
 import time
 from fastapi.middleware.cors import CORSMiddleware
-
+import traceback 
 
 ml_models = {}
 
@@ -301,24 +301,34 @@ values (%s,%s,%s,%s)
 
 
 
-
-@app.post("/chat",response_model=schemas.ChatResponse)
-
 async def chat_endpoint(query: schemas.ChatQuery):
-
-
-    user_query = query.query
-
-    if not user_query or user_query.strip() == "":
-
-        raise HTTPException(status_code=400, detail="Query cant be empty")
     
+    # This 'try' block runs your normal code.
+    try:
+        user_query = query.query
 
-    rag_pipe = ml_models["rag_pipeline"]
+        if not user_query or user_query.strip() == "":
+            raise HTTPException(status_code=400, detail="Query cannot be empty")
+        
+        rag_pipe = ml_models["rag_pipeline"]
+        answer = rag_pipe.ask(user_query)
+        
+        return answer
 
-    answer = rag_pipe.ask(user_query)
-
-    return answer
+    # If ANY error happens in the 'try' block above,
+    # this 'except' block will run instead.
+    except Exception as e:
+        
+        # 1. This prints a clear message to your Render logs so you can find it.
+        print("--- AN UNEXPECTED ERROR OCCURRED IN THE CHAT ENDPOINT ---")
+        
+        # 2. This prints the FULL, detailed Python error traceback to your logs.
+        # This is the most important line for debugging.
+        traceback.print_exc()
+        
+        # 3. This sends the "Internal Server Error" back to the user,
+        # but now you can see the real cause in your logs.
+        raise HTTPException(status_code=500, detail="An internal server error occurred. Please check the server logs for details.")
 
 
 
