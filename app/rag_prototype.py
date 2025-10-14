@@ -2,6 +2,7 @@ import chromadb
 
 from  ai_handler import get_llm_completion
 
+from  embedder import model as embedding_model
 
 
 CHROMA_DB_PATH = "chroma_data"
@@ -24,20 +25,12 @@ class RAG_Pipeline:
         print("Initializing RAG Pipeline...") # Added a print statement for logging
         
 
-        self.embedding_model = None #new change oct 14 for deployment reason
+        self.embedding_model = embedding_model
         client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
         self.collection = client.get_or_create_collection(name=collection_name)
         print(f"✅ Pipeline initialized. Found {self.collection.count()} documents.")
 
-    def _initialize_model(self):
-        if self.embedding_model is None:
-            print("Lazy loading embedding model...")
-            from embedder import model as embedding_model # Import it here!, new change oct 14 for deployment reason
-            self.embedding_model = embedding_model
-            print("✅ Model loaded.")
-
     def _retrieve_context(self, query:str, n_results: int = 5):
-        self._initialize_model()
 
         query_embedding = self.embedding_model.encode([query])
 
