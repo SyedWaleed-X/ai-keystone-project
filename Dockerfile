@@ -6,8 +6,8 @@ WORKDIR /app
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 
 # Copy ONLY the requirements file first for caching
-COPY requirements_backend.txt ./requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements_backend.txt .
+RUN pip install --no-cache-dir -r requirements_backend.txt
 
 # --- Build the Vector Store ---
 # Copy everything needed to run the indexing script
@@ -25,4 +25,4 @@ COPY ./app .
 
 # Expose the port and set the final run command
 EXPOSE 8000
-CMD uvicorn main:app --host 0.0.0.0 --port $PORT
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
