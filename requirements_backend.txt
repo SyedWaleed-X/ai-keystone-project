@@ -19,6 +19,7 @@ transformers==4.35.2
 # with sentence-transformers==2.2.2
 huggingface-hub<0.21.0
 # --- END PINNED VERSIONS ---
+pypdf
 
 chromadb
 passlib[bcrypt]
