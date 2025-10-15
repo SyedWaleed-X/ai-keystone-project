@@ -300,7 +300,7 @@ values (%s,%s,%s,%s)
 
 
 
-
+@app.post("/chat", response_model=schemas.ChatResponse)
 async def chat_endpoint(query: schemas.ChatQuery):
     
     # This 'try' block runs your normal code.
