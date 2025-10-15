@@ -29,4 +29,4 @@ langchain
 langchain-community
 
 pypdf
-numpy==2.3.3
+numpy<2.0
