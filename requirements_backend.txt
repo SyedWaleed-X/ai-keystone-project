@@ -23,10 +23,10 @@ huggingface-hub<0.21.0
 chromadb
 passlib[bcrypt]
 python-jose[cryptography]
-scipy
+scipy==1.16.2
 
 langchain
 langchain-community
 
 pypdf
-numpy
+numpy==2.3.3
