@@ -20,10 +20,11 @@ transformers==4.35.2
 huggingface-hub<0.21.0
 # --- END PINNED VERSIONS ---
 pypdf
-
+numpy
 chromadb
 passlib[bcrypt]
 python-jose[cryptography]
+scipy
 
 langchain-community
 langchain-core
