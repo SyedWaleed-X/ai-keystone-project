@@ -1,12 +1,10 @@
+# In rag_prototype.py
+
 import chromadb
-
-from  ai_handler import get_llm_completion
-
-from  embedder import model as embedding_model
-
+from ai_handler import get_llm_completion
+from embedder import model as embedding_model
 
 CHROMA_DB_PATH = "chroma_data"
-
 collection_name = "knowledge_base"
 
 PROMPT_fr = """Answer based only on this context, otherwise say "idk bro"
@@ -20,65 +18,43 @@ and give your short opinion on the subject/provided context, just a short para/m
 """
 
 class RAG_Pipeline:
-
     def __init__(self):
-        print("Initializing RAG Pipeline...") # Added a print statement for logging
-        
-
+        print("Initializing RAG Pipeline...")
         self.embedding_model = embedding_model
         client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
         self.collection = client.get_or_create_collection(name=collection_name)
         print(f"✅ Pipeline initialized. Found {self.collection.count()} documents.")
 
-    def _retrieve_context(self, query:str, n_results: int = 5):
-
+    def _retrieve_context(self, query: str, n_results: int = 5):
         query_embedding = self.embedding_model.encode([query])
-
         results = self.collection.query(
             query_embeddings=query_embedding.tolist(),
             n_results=n_results,
+            # This is the key: we ask ChromaDB for the documents AND the metadata
             include=["documents", "metadatas"]
         )
-
         context = "\n\n--\n\n".join(results['documents'][0])
-        sources = {
-        "documents": results['documents'][0],
-        "metadatas": results['metadatas'][0]
-                 } 
+        # We now return the context, the document texts, and the document metadatas
+        return context, results['documents'][0], results['metadatas'][0]
 
-        return context, sources
-    
-    def _generate_response(self, query:str, context:str):
-
+    def _generate_response(self, query: str, context: str):
         prompt = PROMPT_fr.format(context=context, question=query)
-
+        # This is the simple, non-streaming call
         response = get_llm_completion(prompt)
-
         return response
-    
+
     def ask(self, query: str):
-
-        context, sources = self._retrieve_context(query)
-
-        answer_stream = self._generate_response(query, context)
-
-        return {"answer_stream" : answer_stream , "sources" : sources}
-
-
-
+        context, source_docs, source_metas = self._retrieve_context(query)
+        answer = self._generate_response(query, context)
+        
+        # We return a dictionary with all the information the frontend needs
+        return {
+            "answer": answer,
+            "source_documents": source_docs,
+            "source_metadatas": source_metas
+        }
 
 if __name__ == "__main__":
- 
-
     rag_pipeline = RAG_Pipeline()
-
     answer1 = rag_pipeline.ask("What is a banana like? and its ancestors?")
-
     print(answer1)
-
-
-
-
-
-
-

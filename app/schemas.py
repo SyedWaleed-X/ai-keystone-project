@@ -1,7 +1,7 @@
 # app/schemas.py
 from pydantic import BaseModel
 from datetime import date
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 class Employee(BaseModel):
     id: int
@@ -25,4 +25,5 @@ class ChatQuery(BaseModel):
 
 class ChatResponse(BaseModel):
     answer:str
-    sources: Optional[list[str]] = None
+    source_documents: Optional[List[str]] = None
+    source_metadatas: Optional[List[Dict[str, Any]]] = None

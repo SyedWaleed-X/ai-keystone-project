@@ -1,4 +1,3 @@
-
 import chromadb
 import os
 
@@ -44,7 +43,7 @@ def populate_vector_store():
           chunks = text_splitter.split_documents(documents)
           
           for chunk in chunks:
-                chunk.metadata['source'] = filename 
+                chunk.metadata['source'] = filename
 
           all_chunks.extend(chunks)
     if not all_chunks:
@@ -108,6 +107,4 @@ def populate_vector_store():
 if __name__ == "__main__":
 
         populate_vector_store()
-
-
 

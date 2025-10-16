@@ -7,14 +7,12 @@ import schemas
 from psycopg2.extras import DictCursor
 # This is the one and only 'app' instance
 from fastapi import HTTPException
-from fastapi.responses import StreamingResponse
 from typing import Optional
 from  rag_prototype import RAG_Pipeline
 from contextlib import asynccontextmanager
 import time
 from fastapi.middleware.cors import CORSMiddleware
 import traceback 
-import json
 
 ml_models = {}
 
@@ -303,36 +301,35 @@ values (%s,%s,%s,%s)
 
 
 
-@app.post("/chat") # Removed response_model as it's now a stream
+@app.post("/chat", response_model=schemas.ChatResponse)
 async def chat_endpoint(query: schemas.ChatQuery):
     
-    async def combined_stream_generator(query_str: str):
-        try:
-            rag_pipe = ml_models["rag_pipeline"]
-            
-            # The ask method now returns a dict with a generator and sources
-            result = rag_pipe.ask(query_str)
-            answer_generator = result["answer_stream"]
-            sources = result["sources"]
+    # This 'try' block runs your normal code.
+    try:
+        user_query = query.query
 
-            # 1. Yield all the answer chunks from the LLM
-            for chunk in answer_generator:
-                yield chunk
+        if not user_query or user_query.strip() == "":
+            raise HTTPException(status_code=400, detail="Query cannot be empty")
+        
+        rag_pipe = ml_models["rag_pipeline"]
+        answer = rag_pipe.ask(user_query)
+        
+        return answer
 
-            # 2. After the answer is finished, format the sources into JSON
-            sources_json_str = json.dumps(sources)
-
-            # 3. Yield a final, special string containing the sources
-            # The "SOURCES:::" prefix is a marker for our frontend to find.
-            yield f"SOURCES:::{sources_json_str}"
-
-        except Exception as e:
-            print("--- AN UNEXPECTED ERROR OCCURRED IN THE STREAM GENERATOR ---")
-            traceback.print_exc()
-            yield "An internal server error occurred."
-
-    # Return a StreamingResponse, which FastAPI knows how to handle.
-    return StreamingResponse(combined_stream_generator(query.query), media_type='text/event-stream')
+    # If ANY error happens in the 'try' block above,
+    # this 'except' block will run instead.
+    except Exception as e:
+        
+        # 1. This prints a clear message to your Render logs so you can find it.
+        print("--- AN UNEXPECTED ERROR OCCURRED IN THE CHAT ENDPOINT ---")
+        
+        # 2. This prints the FULL, detailed Python error traceback to your logs.
+        # This is the most important line for debugging.
+        traceback.print_exc()
+        
+        # 3. This sends the "Internal Server Error" back to the user,
+        # but now you can see the real cause in your logs.
+        raise HTTPException(status_code=500, detail="An internal server error occurred. Please check the server logs for details.")
 
 
 
@@ -349,5 +346,3 @@ async def log_requests(request: Request, call_next):
     
     return response
 """
-
-

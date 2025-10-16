@@ -4,14 +4,14 @@ import streamlit as st
 import requests
 import pandas as pd
 import os
-import json
+import time # <-- Make sure to import the time library
 
 # --- Configuration ---
 st.set_page_config(page_title="Operator Control Panel", layout="wide", page_icon="🤖")
 
 API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
 
-# --- Reusable API Fetch Function (for non-streaming endpoints) ---
+# --- Reusable API Fetch Function ---
 @st.cache_data(ttl=600)
 def fetch_from_api(endpoint: str, params: dict = None):
     url = f"{API_BASE_URL}/{endpoint}"
@@ -72,78 +72,71 @@ def employee_data_page():
 def ai_chat_page():
     st.header("AI Knowledge Base Chat")
 
-    # Initialize chat history
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    # Display past chat messages
+    # Display past messages and their sources
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
-            # Check if there are sources and display them beautifully
-            if "sources" in message and message["sources"]:
+            if "source_documents" in message and message["source_documents"]:
                 with st.expander("View Sources"):
-                    for i, source_meta in enumerate(message["sources"]):
-                        # The source_documents should be in the message state as well
-                        source_doc = message["source_documents"][i]
-                        st.info(f"**Source:** {source_meta.get('source', 'N/A')}, **Page:** {source_meta.get('page', 'N/A') + 1 if source_meta.get('page') is not None else 'N/A'}")
-                        st.text(source_doc)
+                    for i, doc in enumerate(message["source_documents"]):
+                        metadata = message["source_metadatas"][i]
+                        filename = metadata.get("source", "N/A")
+                        page = metadata.get("page")
+                        
+                        # Create the header for the blue box
+                        if page is not None:
+                            source_header = f"Source: {filename}, Page: {page + 1}"
+                        else:
+                            source_header = f"Source: {filename}"
+                        
+                        st.info(source_header)
+                        st.text(doc) # Display the actual text chunk
 
     if st.sidebar.button("Clear Chat History"):
         st.session_state.messages = []
         st.rerun()
 
-    # Handle new user input
     if prompt := st.chat_input("Ask a question about the knowledge base..."):
-        # Add user message to history and display it
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # Display assistant response by streaming
         with st.chat_message("assistant"):
-            
-            # This is a placeholder that we will update with the streaming text
-            message_placeholder = st.empty()
-            
-            # This is the generator function that calls the API
-            def stream_generator():
-                url = f"{API_BASE_URL}/chat"
-                with requests.post(url, json={"query": prompt}, stream=True) as r:
-                    r.raise_for_status()
-                    for line in r.iter_lines():
-                        if line:
-                            decoded_line = line.decode('utf-8')
-                            yield decoded_line
-            
-            # --- THIS IS THE CORRECTED LOGIC ---
-            stream = stream_generator()
-            full_response_text = ""
-            sources_data = {}
+            # --- NEW WAITING UX ---
+            with st.spinner("Finding relevant documents..."):
+                time.sleep(3) # Simulate a 3-second search
 
-            for chunk in stream:
-                if chunk.startswith("SOURCES:::"):
-                    # This is our special end-of-stream message
-                    sources_data_json = chunk.split("SOURCES:::", 1)[1]
-                    sources_data = json.loads(sources_data_json)
-                else:
-                    # This is a regular text chunk
-                    full_response_text += chunk
-                    message_placeholder.markdown(full_response_text + "▌")
-            
-            # Display the final, complete text without the cursor
-            message_placeholder.markdown(full_response_text)
+            with st.spinner("Thinking..."):
+                try:
+                    chat_url = f"{API_BASE_URL}/chat"
+                    response = requests.post(chat_url, json={"query": prompt})
+                    response.raise_for_status()
+                    response_data = response.json()
+                    
+                    answer = response_data.get("answer")
+                    source_documents = response_data.get("source_documents", [])
+                    source_metadatas = response_data.get("source_metadatas", [])
+                    
+                    # Display the final answer
+                    st.markdown(answer)
+                    
+                    # Save the complete message to session state for the next rerun
+                    st.session_state.messages.append({
+                        "role": "assistant",
+                        "content": answer,
+                        "source_documents": source_documents,
+                        "source_metadatas": source_metadatas
+                    })
+                    # Rerun the script to display the new "View Sources" expander
+                    st.rerun()
 
-        # After the stream is complete, save the full message to state
-        st.session_state.messages.append({
-            "role": "assistant",
-            "content": full_response_text,
-            "sources": sources_data.get("metadatas", []),
-            "source_documents": sources_data.get("documents", []),
-        })
-        # Rerun to make the "View Sources" expander appear on the new message
-        st.rerun()
-
+                except requests.exceptions.RequestException as e:
+                    error_message = f"API Error: {e}"
+                    st.error(error_message)
+                    st.session_state.messages.append({"role": "assistant", "content": error_message})
 
 # --- Main App Navigation ---
 st.sidebar.title("Navigation")
@@ -151,7 +144,6 @@ app_mode = st.sidebar.radio(
     "Choose a module:",
     ["Home", "Employee Data", "AI Knowledge Chat"]
 )
-
 st.sidebar.divider()
 st.sidebar.info("This is the frontend for the AI Keystone Project.")
 st.sidebar.info("Built by Syed Waleed-X.")
