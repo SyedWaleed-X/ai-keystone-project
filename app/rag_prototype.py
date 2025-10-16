@@ -41,9 +41,12 @@ class RAG_Pipeline:
         )
 
         context = "\n\n--\n\n".join(results['documents'][0])
-        source_metadatas = results['metadatas'][0] 
+        sources = {
+        "documents": results['documents'][0],
+        "metadatas": results['metadatas'][0]
+                 } 
 
-        return context, source_metadatas
+        return context, sources
     
     def _generate_response(self, query:str, context:str):
 

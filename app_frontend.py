@@ -1,3 +1,5 @@
+# In app_frontend.py
+
 import streamlit as st
 import requests
 import pandas as pd
@@ -24,13 +26,11 @@ def fetch_from_api(endpoint: str, params: dict = None):
 # --- Page Definitions ---
 
 def home_page():
-    # ... (This function is correct, no changes needed) ...
     st.header("Welcome to the Operator's Control Panel")
     st.write("Use the navigation bar on the left to access different modules.")
     st.info("This application provides a user-friendly interface for the AI Keystone Project API, allowing interaction with both the structured employee database and the unstructured AI knowledge base.")
 
 def employee_data_page():
-    # ... (This function is correct, no changes needed) ...
     st.header("Employee Data Management")
     st.subheader("Full Data Views")
     col1, col2 = st.columns(2)
@@ -68,7 +68,7 @@ def employee_data_page():
                 st.write(f"Found {len(data)} matching employees:")
                 st.dataframe(pd.DataFrame(data))
 
-# --- THIS IS THE NEW, CORRECTED CHAT PAGE FUNCTION ---
+# --- THIS IS THE FINAL, CORRECTED CHAT PAGE FUNCTION ---
 def ai_chat_page():
     st.header("AI Knowledge Base Chat")
 
@@ -83,10 +83,11 @@ def ai_chat_page():
             # Check if there are sources and display them beautifully
             if "sources" in message and message["sources"]:
                 with st.expander("View Sources"):
-                    for source_doc, source_meta in zip(message["source_documents"], message["sources"]):
+                    for i, source_meta in enumerate(message["sources"]):
+                        # The source_documents should be in the message state as well
+                        source_doc = message["source_documents"][i]
                         st.info(f"**Source:** {source_meta.get('source', 'N/A')}, **Page:** {source_meta.get('page', 'N/A') + 1 if source_meta.get('page') is not None else 'N/A'}")
                         st.text(source_doc)
-
 
     if st.sidebar.button("Clear Chat History"):
         st.session_state.messages = []
@@ -101,11 +102,11 @@ def ai_chat_page():
 
         # Display assistant response by streaming
         with st.chat_message("assistant"):
-            full_response_text = ""
-            sources = []
-            source_documents = [] # We need to get the source documents as well
-
-            # Use st.write_stream which is designed for this exact purpose
+            
+            # This is a placeholder that we will update with the streaming text
+            message_placeholder = st.empty()
+            
+            # This is the generator function that calls the API
             def stream_generator():
                 url = f"{API_BASE_URL}/chat"
                 with requests.post(url, json={"query": prompt}, stream=True) as r:
@@ -113,34 +114,38 @@ def ai_chat_page():
                     for line in r.iter_lines():
                         if line:
                             decoded_line = line.decode('utf-8')
-                            if decoded_line.startswith("SOURCES:::"):
-                                # This is our special end-of-stream message
-                                sources_data = json.loads(decoded_line.split("SOURCES:::", 1)[1])
-                                # We need to update the RAG pipeline to send both docs and metadata
-                                nonlocal sources
-                                nonlocal source_documents
-                                sources = sources_data.get("metadatas", [])
-                                source_documents = sources_data.get("documents", [])
-                            else:
-                                # This is a regular text chunk
-                                yield decoded_line
+                            yield decoded_line
             
-            # st.write_stream will display the text chunks as they arrive
-            streamed_text = st.write_stream(stream_generator)
+            # --- THIS IS THE CORRECTED LOGIC ---
+            stream = stream_generator()
+            full_response_text = ""
+            sources_data = {}
+
+            for chunk in stream:
+                if chunk.startswith("SOURCES:::"):
+                    # This is our special end-of-stream message
+                    sources_data_json = chunk.split("SOURCES:::", 1)[1]
+                    sources_data = json.loads(sources_data_json)
+                else:
+                    # This is a regular text chunk
+                    full_response_text += chunk
+                    message_placeholder.markdown(full_response_text + "▌")
+            
+            # Display the final, complete text without the cursor
+            message_placeholder.markdown(full_response_text)
 
         # After the stream is complete, save the full message to state
         st.session_state.messages.append({
             "role": "assistant",
-            "content": streamed_text,
-            "sources": sources,
-            "source_documents": source_documents,
+            "content": full_response_text,
+            "sources": sources_data.get("metadatas", []),
+            "source_documents": sources_data.get("documents", []),
         })
         # Rerun to make the "View Sources" expander appear on the new message
         st.rerun()
 
 
 # --- Main App Navigation ---
-# ... (The rest of your file is correct, no changes needed) ...
 st.sidebar.title("Navigation")
 app_mode = st.sidebar.radio(
     "Choose a module:",
