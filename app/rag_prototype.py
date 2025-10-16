@@ -57,9 +57,9 @@ class RAG_Pipeline:
 
         context, sources = self._retrieve_context(query)
 
-        answer = self._generate_response(query, context)
+        answer_stream = self._generate_response(query, context)
 
-        return {"answer" : answer, "sources" : sources}
+        return {"answer_stream" : answer_stream , "sources" : sources}
 
 
 
