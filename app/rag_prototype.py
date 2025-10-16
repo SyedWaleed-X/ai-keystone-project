@@ -36,13 +36,14 @@ class RAG_Pipeline:
 
         results = self.collection.query(
             query_embeddings=query_embedding.tolist(),
-            n_results=n_results
+            n_results=n_results,
+            include=["documents", "metadatas"]
         )
 
         context = "\n\n--\n\n".join(results['documents'][0])
-        source_documents = results['documents'][0]
+        source_metadatas = results['metadatas'][0] 
 
-        return context, source_documents
+        return context, source_metadatas
     
     def _generate_response(self, query:str, context:str):
 

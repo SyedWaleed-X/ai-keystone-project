@@ -13,6 +13,7 @@ from contextlib import asynccontextmanager
 import time
 from fastapi.middleware.cors import CORSMiddleware
 import traceback 
+import json
 
 ml_models = {}
 
@@ -37,6 +38,7 @@ app = FastAPI(lifespan=lifespan)
 origins = [
     # This allows your local Streamlit app to talk to the API
     "http://localhost:8501", 
+    "https://ai-keystone-project-kehmtdkvducjjvmojaf672.streamlit.app/"
     # We will add your live Streamlit URL here later
 ]
 

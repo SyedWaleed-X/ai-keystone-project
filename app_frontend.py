@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import pandas as pd
 import os 
+import json
 # --- Configuration ---
 st.set_page_config(page_title="Operator Control Panel", layout="wide", page_icon="🤖")
 
@@ -78,45 +79,78 @@ def employee_data_page():
 def ai_chat_page():
     st.header("AI Knowledge Base Chat")
 
+    # --- SETUP AND DISPLAY HISTORY (NO CHANGES) ---
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
-
+            if "sources" in message and message["sources"]:
+                with st.expander("View Sources"):
+                    for source in message["sources"]:
+                        # This now handles the richer source info (filename and page)
+                        source_text = source.get('source', 'Unknown')
+                        page = source.get('page')
+                        if page is not None:
+                            # Add 1 to page number because it's 0-indexed
+                            st.info(f"Source: {source_text}, Page: {page + 1}")
+                        else:
+                            st.info(f"Source: {source_text}")
+    
     if st.sidebar.button("Clear Chat History"):
         st.session_state.messages = []
-        st.rerun() # Immediately rerun the script to clear the display
+        st.rerun()
 
+    # --- HANDLE NEW PROMPT ---
     if prompt := st.chat_input("Ask a question about the knowledge base..."):
+        # Display the user's message immediately
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
+        # --- NEW STREAMING LOGIC ---
+        # Now, handle the assistant's response
         with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
-                try:
-                    chat_url = f"{API_BASE_URL}/chat"
-                    response = requests.post(chat_url, json={"query": prompt})
-                    response.raise_for_status()
-                    response_data = response.json()
-                    
-                    answer = response_data.get("answer", "Sorry, I couldn't get a valid answer.")
-                    sources = response_data.get("sources", [])
-                    
-                    st.markdown(answer)
-                    if sources:
-                        with st.expander("View Sources"):
-                            for source in sources:
-                                st.info(source)
-                    
-                    st.session_state.messages.append({"role": "assistant", "content": answer})
+            message_placeholder = st.empty()
+            full_response_text = ""
+            sources = []
 
-                except requests.exceptions.RequestException as e:
-                    error_message = f"API Error: {e}"
-                    st.error(error_message)
-                    st.session_state.messages.append({"role": "assistant", "content": error_message})
+            url = f"{API_BASE_URL}/chat"
+            try:
+                # This `with` block makes a streaming request to your API
+                with requests.post(url, json={"query": prompt}, stream=True) as r:
+                    r.raise_for_status()
+                    # Iterate over each line of text the API sends
+                    for line in r.iter_lines():
+                        if line:
+                            decoded_line = line.decode('utf-8')
+                            # Check for our special "SOURCES" message at the end
+                            if decoded_line.startswith("SOURCES:::"):
+                                sources_json = decoded_line.split("SOURCES:::", 1)[1]
+                                sources = json.loads(sources_json)
+                            else:
+                                # If it's a regular text chunk, add it to our full response
+                                full_response_text += decoded_line
+                                # Update the placeholder on the screen to show the new text
+                                message_placeholder.markdown(full_response_text + "▌")
+                
+                # Once the loop is done, display the final full text without the cursor
+                message_placeholder.markdown(full_response_text)
+
+            except requests.exceptions.RequestException as e:
+                full_response_text = f"API Error: {e}"
+                message_placeholder.error(full_response_text)
+
+        # Append the final, complete message and its sources to the chat history
+        st.session_state.messages.append({
+            "role": "assistant",
+            "content": full_response_text,
+            "sources": sources
+        })
+        
+        # Rerun the script to make the "View Sources" expander appear correctly
+        st.rerun()
 
 # --- Main App Navigation ---
 st.sidebar.title("Navigation")
